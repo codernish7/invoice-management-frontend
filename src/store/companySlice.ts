@@ -30,10 +30,18 @@ const companySlice = createSlice({
       state.company = null
       state.isInitialized = true
     },
+    setCompany(state, action: PayloadAction<Company>) {
+      state.company = action.payload
+      state.isInitialized = true
+    },
   },
 })
 
-export const { setCompanyFromAuth, hydrateCompany, hydrateUnauthenticated } =
-  companySlice.actions
+export const {
+  setCompanyFromAuth,
+  hydrateCompany,
+  hydrateUnauthenticated,
+  setCompany,
+} = companySlice.actions
 
 export default companySlice.reducer

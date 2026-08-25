@@ -36,3 +36,18 @@ export type SignupRequest = {
   name: string
   invoice_prefix: string
 }
+
+export type UpdateCompanyRequest = {
+  owner: string
+  name: string
+  phone: string | null
+  pan: string | null
+  gstin: string | null
+  address: string | null
+  state: string | null
+  invoice_prefix: string
+  bank_name: string | null
+  account_number: string | null
+  ifsc_code: string | null
+  branch: string | null
+}
