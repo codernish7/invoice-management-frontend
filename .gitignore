@@ -14,6 +14,17 @@ dist-ssr
 
 # Environment variables
 .env
+.env.*
+vite-env.d.ts
+
+# Build
+build/
+
+# Distribution
+dist/
+
+# Logs
+logs/
 
 # Editor directories and files
 .vscode/*
