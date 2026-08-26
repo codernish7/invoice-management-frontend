@@ -14,12 +14,16 @@ type RowActionsMenuProps = {
   entityId: string
   getPaths: (entityId: string) => RowActionPaths
   ariaLabel?: string
+  onDownload?: () => void
+  downloadDisabled?: boolean
 }
 
 export default function RowActionsMenu({
   entityId,
   getPaths,
   ariaLabel = 'Open actions menu',
+  onDownload,
+  downloadDisabled = false,
 }: RowActionsMenuProps) {
   const navigate = useNavigate()
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
@@ -45,6 +49,14 @@ export default function RowActionsMenu({
     navigate(editPath)
   }
 
+  const handleDownload = () => {
+    if (downloadDisabled || onDownload === undefined) {
+      return
+    }
+    handleClose()
+    onDownload()
+  }
+
   return (
     <>
       <IconButton
@@ -67,6 +79,11 @@ export default function RowActionsMenu({
       >
         <MenuItem onClick={handleView}>View</MenuItem>
         <MenuItem onClick={handleEdit}>Edit</MenuItem>
+        {onDownload !== undefined && (
+          <MenuItem onClick={handleDownload} disabled={downloadDisabled}>
+            Download
+          </MenuItem>
+        )}
       </Menu>
     </>
   )
