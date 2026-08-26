@@ -1,11 +1,13 @@
 import { configureStore } from '@reduxjs/toolkit'
 import clientsReducer from './clientsSlice'
 import companyReducer from './companySlice'
+import productsReducer from './productsSlice'
 
 export const store = configureStore({
   reducer: {
     company: companyReducer,
     clients: clientsReducer,
+    products: productsReducer,
   },
 })
 
@@ -20,3 +22,8 @@ export const selectClients = (state: RootState) => state.clients.clients
 export const selectClientsStatus = (state: RootState) => state.clients.status
 export const selectClientsError = (state: RootState) => state.clients.error
 export const selectClientsHasFetched = (state: RootState) => state.clients.hasFetched
+
+export const selectProducts = (state: RootState) => state.products.products
+export const selectProductsStatus = (state: RootState) => state.products.status
+export const selectProductsError = (state: RootState) => state.products.error
+export const selectProductsHasFetched = (state: RootState) => state.products.hasFetched
