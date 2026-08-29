@@ -34,6 +34,10 @@ const companySlice = createSlice({
       state.company = action.payload
       state.isInitialized = true
     },
+    removeCompany(state) {
+      state.company = null
+      state.isInitialized = true
+    },
   },
 })
 
@@ -42,6 +46,7 @@ export const {
   hydrateCompany,
   hydrateUnauthenticated,
   setCompany,
+  removeCompany,
 } = companySlice.actions
 
 export default companySlice.reducer

@@ -41,6 +41,12 @@ const productsSlice = createSlice({
       state.error = null
       state.hasFetched = true
     },
+    clearProducts(state) {
+      state.products = []
+      state.status = 'idle'
+      state.error = null
+      state.hasFetched = false
+    },
   },
 })
 
@@ -49,6 +55,7 @@ export const {
   productsFetchSucceeded,
   productsFetchFailed,
   productsCreated,
+  clearProducts,
 } = productsSlice.actions
 
 export default productsSlice.reducer

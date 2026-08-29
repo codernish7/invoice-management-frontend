@@ -41,6 +41,12 @@ const clientsSlice = createSlice({
       state.error = null
       state.hasFetched = true
     },
+    clearClients(state) {
+      state.clients = []
+      state.status = 'idle'
+      state.error = null
+      state.hasFetched = false
+    },
   },
 })
 
@@ -49,6 +55,7 @@ export const {
   clientsFetchSucceeded,
   clientsFetchFailed,
   clientCreated,
+  clearClients,
 } = clientsSlice.actions
 
 export default clientsSlice.reducer

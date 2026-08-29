@@ -41,6 +41,12 @@ const invoicesSlice = createSlice({
       state.error = null
       state.hasFetched = true
     },
+    clearInvoices(state) {
+      state.invoices = []
+      state.status = 'idle'
+      state.error = null
+      state.hasFetched = false
+    },
   },
 })
 
@@ -49,6 +55,7 @@ export const {
   invoicesFetchSucceeded,
   invoicesFetchFailed,
   invoiceCreated,
+  clearInvoices,
 } = invoicesSlice.actions
 
 export default invoicesSlice.reducer

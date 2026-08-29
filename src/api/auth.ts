@@ -15,3 +15,7 @@ export async function signupCompany(payload: SignupRequest): Promise<Company> {
   const response = await apiClient.post<ApiSuccess<Company>>('/signup', payload)
   return response.data.data
 }
+
+export async function logoutCompany(): Promise<void> {
+  await apiClient.post<ApiSuccess<void>>('/logout')
+}

@@ -6,9 +6,17 @@ import Menu from '@mui/material/Menu'
 import MenuItem from '@mui/material/MenuItem'
 import Toolbar from '@mui/material/Toolbar'
 import Typography from '@mui/material/Typography'
-import { Link as RouterLink } from 'react-router-dom'
+import { Link as RouterLink, useNavigate } from 'react-router-dom'
+import { logoutCompany } from '../api/auth'
+import { useAppDispatch } from '../store/hooks'
+import { removeCompany } from '../store/companySlice'
+import { clearClients } from '../store/clientsSlice'
+import { clearProducts } from '../store/productsSlice'
+import { clearInvoices } from '../store/invoicesSlice'
 
 export default function Navbar() {
+  const navigate = useNavigate()
+  const dispatch = useAppDispatch()
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const menuOpen = Boolean(anchorEl)
 
@@ -18,6 +26,19 @@ export default function Navbar() {
 
   const handleCloseMenu = () => {
     setAnchorEl(null)
+  }
+
+  const handleLogout = async () => {
+    try {
+      await logoutCompany()
+      dispatch(removeCompany())
+      dispatch(clearClients())
+      dispatch(clearProducts())
+      dispatch(clearInvoices())
+      navigate('/auth/login', { replace: true })
+    } catch (error) {
+      console.error('Failed to logout:', error)
+    }
   }
 
   return (
@@ -51,7 +72,7 @@ export default function Navbar() {
           <MenuItem component={RouterLink} to="/" onClick={handleCloseMenu}>
             Company
           </MenuItem>
-          <MenuItem onClick={handleCloseMenu}>Logout</MenuItem>
+          <MenuItem onClick={handleLogout}>Logout</MenuItem>
         </Menu>
       </Toolbar>
     </AppBar>
