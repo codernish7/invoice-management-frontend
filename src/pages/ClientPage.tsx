@@ -151,7 +151,7 @@ export default function ClientPage() {
     }
 
   const handleCancel = () => {
-    navigate(`/clients/${id}`)
+    navigate(`/clients`)
   }
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {

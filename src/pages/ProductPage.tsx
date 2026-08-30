@@ -139,7 +139,7 @@ export default function ProductPage() {
     }
 
   const handleCancel = () => {
-    navigate(`/products/${id}`)
+    navigate(`/products`)
   }
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
