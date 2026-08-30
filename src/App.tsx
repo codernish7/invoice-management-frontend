@@ -8,11 +8,10 @@ import CreateInvoicePage from './pages/CreateInvoicePage'
 import CreateProductsPage from './pages/CreateProductsPage'
 import EditCompanyPage from './pages/EditCompanyPage'
 import EditInvoicePage from './pages/EditInvoicePage'
-import EditProductPage from './pages/EditProductPage'
 import InvoiceDetailsPage from './pages/InvoiceDetailsPage'
 import InvoicesPage from './pages/InvoicesPage'
 import LoginPage from './pages/LoginPage'
-import ProductDetailsPage from './pages/ProductDetailsPage'
+import ProductPage from './pages/ProductPage'
 import ProductsPage from './pages/ProductsPage'
 import SignupPage from './pages/SignupPage'
 
@@ -35,8 +34,8 @@ function App() {
           <Route path="/clients/:id/edit" element={<ClientPage />} />
           <Route path="/products" element={<ProductsPage />} />
           <Route path="/products/create" element={<CreateProductsPage />} />
-          <Route path="/products/:id" element={<ProductDetailsPage />} />
-          <Route path="/products/:id/edit" element={<EditProductPage />} />
+          <Route path="/products/:id" element={<ProductPage />} />
+          <Route path="/products/:id/edit" element={<ProductPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

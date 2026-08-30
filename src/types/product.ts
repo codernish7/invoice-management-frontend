@@ -15,3 +15,10 @@ export type CreateProductInput = {
   unit: string
   gst_percent: number
 }
+
+export type UpdateProductInput = {
+  product_name?: string
+  hsn_code?: string
+  gst_percent?: number
+  unit?: string
+}

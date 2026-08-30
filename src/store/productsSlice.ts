@@ -41,6 +41,16 @@ const productsSlice = createSlice({
       state.error = null
       state.hasFetched = true
     },
+    productUpdated(state, action: PayloadAction<Product>) {
+      const index = state.products.findIndex(
+        (product) => product.id === action.payload.id,
+      )
+      if (index !== -1) {
+        state.products[index] = action.payload
+      }
+      state.status = 'succeeded'
+      state.error = null
+    },
     clearProducts(state) {
       state.products = []
       state.status = 'idle'
@@ -55,6 +65,7 @@ export const {
   productsFetchSucceeded,
   productsFetchFailed,
   productsCreated,
+  productUpdated,
   clearProducts,
 } = productsSlice.actions
 
