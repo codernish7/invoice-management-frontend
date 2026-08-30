@@ -187,49 +187,7 @@ export default function InvoiceDetailsPage() {
 
       {downloadError !== null && <Alert severity="error">{downloadError}</Alert>}
 
-      <SectionCard title="Company Information">
-        <Grid container spacing={2}>
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <DetailField label="Company Name" value={company.name} />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <DetailField label="Owner" value={company.owner} />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <DetailField label="Email" value={company.email} />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <DetailField label="Phone" value={displayNullable(company.phone)} />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <DetailField label="GSTIN" value={displayNullable(company.gstin)} />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <DetailField label="PAN" value={displayNullable(company.pan)} />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <DetailField label="State" value={displayNullable(company.state)} />
-          </Grid>
-          <Grid size={12}>
-            <DetailField label="Address" value={displayNullable(company.address)} />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <DetailField label="Bank Name" value={displayNullable(company.bank_name)} />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <DetailField label="Branch" value={displayNullable(company.branch)} />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <DetailField
-              label="Account Number"
-              value={displayNullable(company.account_number)}
-            />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <DetailField label="IFSC" value={displayNullable(company.ifsc_code)} />
-          </Grid>
-        </Grid>
-      </SectionCard>
+      
 
       <SectionCard title="Client Information">
         <Grid container spacing={2}>
@@ -271,6 +229,50 @@ export default function InvoiceDetailsPage() {
           </Grid>
           <Grid size={{ xs: 12, sm: 6 }}>
             <DetailField label="IFSC" value={displayNullable(client.ifsc_code)} />
+          </Grid>
+        </Grid>
+      </SectionCard>
+
+      <SectionCard title="Company Information">
+        <Grid container spacing={2}>
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <DetailField label="Company Name" value={company.name} />
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <DetailField label="Owner" value={company.owner} />
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <DetailField label="Email" value={company.email} />
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <DetailField label="Phone" value={displayNullable(company.phone)} />
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <DetailField label="GSTIN" value={displayNullable(company.gstin)} />
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <DetailField label="PAN" value={displayNullable(company.pan)} />
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <DetailField label="State" value={displayNullable(company.state)} />
+          </Grid>
+          <Grid size={12}>
+            <DetailField label="Address" value={displayNullable(company.address)} />
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <DetailField label="Bank Name" value={displayNullable(company.bank_name)} />
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <DetailField label="Branch" value={displayNullable(company.branch)} />
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <DetailField
+              label="Account Number"
+              value={displayNullable(company.account_number)}
+            />
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <DetailField label="IFSC" value={displayNullable(company.ifsc_code)} />
           </Grid>
         </Grid>
       </SectionCard>

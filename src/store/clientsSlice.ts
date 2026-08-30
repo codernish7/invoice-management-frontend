@@ -41,6 +41,16 @@ const clientsSlice = createSlice({
       state.error = null
       state.hasFetched = true
     },
+    clientUpdated(state, action: PayloadAction<Client>) {
+      const index = state.clients.findIndex(
+        (client) => client.id === action.payload.id,
+      )
+      if (index !== -1) {
+        state.clients[index] = action.payload
+      }
+      state.status = 'succeeded'
+      state.error = null
+    },
     clearClients(state) {
       state.clients = []
       state.status = 'idle'
@@ -55,6 +65,7 @@ export const {
   clientsFetchSucceeded,
   clientsFetchFailed,
   clientCreated,
+  clientUpdated,
   clearClients,
 } = clientsSlice.actions
 

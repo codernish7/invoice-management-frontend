@@ -25,3 +25,15 @@ export type CreateClientRequest = {
   onboarding_date: string
   state: string | null
 }
+
+export type UpdateClientInput = {
+  name: string
+  email: string
+  phone: string | null
+  pan: string | null
+  gstin: string | null
+  address: string | null
+  client_business: string
+  onboarding_date: string
+  state: string | null
+}

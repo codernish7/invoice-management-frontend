@@ -1,12 +1,11 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import Body from './components/Body'
-import ClientDetailsPage from './pages/ClientDetailsPage'
+import ClientPage from './pages/ClientPage'
 import ClientsPage from './pages/ClientsPage'
 import CompanyPage from './pages/CompanyPage'
 import CreateClientPage from './pages/CreateClientPage'
 import CreateInvoicePage from './pages/CreateInvoicePage'
 import CreateProductsPage from './pages/CreateProductsPage'
-import EditClientPage from './pages/EditClientPage'
 import EditCompanyPage from './pages/EditCompanyPage'
 import EditInvoicePage from './pages/EditInvoicePage'
 import EditProductPage from './pages/EditProductPage'
@@ -32,8 +31,8 @@ function App() {
           <Route path="/invoices/:id/edit" element={<EditInvoicePage />} />
           <Route path="/clients" element={<ClientsPage />} />
           <Route path="/clients/create" element={<CreateClientPage />} />
-          <Route path="/clients/:id" element={<ClientDetailsPage />} />
-          <Route path="/clients/:id/edit" element={<EditClientPage />} />
+          <Route path="/clients/:id" element={<ClientPage />} />
+          <Route path="/clients/:id/edit" element={<ClientPage />} />
           <Route path="/products" element={<ProductsPage />} />
           <Route path="/products/create" element={<CreateProductsPage />} />
           <Route path="/products/:id" element={<ProductDetailsPage />} />
