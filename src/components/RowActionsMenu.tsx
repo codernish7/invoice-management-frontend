@@ -16,6 +16,7 @@ type RowActionsMenuProps = {
   ariaLabel?: string
   onDownload?: () => void
   downloadDisabled?: boolean
+  editDisabled?: boolean
 }
 
 export default function RowActionsMenu({
@@ -24,6 +25,7 @@ export default function RowActionsMenu({
   ariaLabel = 'Open actions menu',
   onDownload,
   downloadDisabled = false,
+  editDisabled = false,
 }: RowActionsMenuProps) {
   const navigate = useNavigate()
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
@@ -44,6 +46,9 @@ export default function RowActionsMenu({
   }
 
   const handleEdit = () => {
+    if (editDisabled) {
+      return
+    }
     const { editPath } = getPaths(entityId)
     handleClose()
     navigate(editPath)
@@ -78,7 +83,9 @@ export default function RowActionsMenu({
         transformOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
         <MenuItem onClick={handleView}>View</MenuItem>
-        <MenuItem onClick={handleEdit}>Edit</MenuItem>
+        <MenuItem onClick={handleEdit} disabled={editDisabled}>
+          Edit
+        </MenuItem>
         {onDownload !== undefined && (
           <MenuItem onClick={handleDownload} disabled={downloadDisabled}>
             Download

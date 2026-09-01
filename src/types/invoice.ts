@@ -1,5 +1,6 @@
 export type InvoiceType = 'SALE'
-export type InvoiceStatus = 'DRAFT' | 'COMPLETE'
+export type InvoiceStatus = 'DRAFT' | 'COMPLETE' | 'CANCELLED'
+export type InvoiceWritableStatus = 'DRAFT' | 'COMPLETE'
 
 export type InvoiceSummary = {
   id: string
@@ -93,14 +94,56 @@ export type CreateInvoiceInput = {
   client_id: string
   invoice_type: InvoiceType
   invoice_date: string
-  status: InvoiceStatus
+  status: InvoiceWritableStatus
   items: CreateInvoiceItemInput[]
+}
+
+export type UpdateInvoiceItemInput = {
+  product_id: string
+  quantity: number
+  rate: number
+}
+
+export type UpdateInvoiceInput = {
+  client_id: string
+  invoice_type: InvoiceType
+  invoice_date: string
+  status: InvoiceWritableStatus
+  items: UpdateInvoiceItemInput[]
 }
 
 export type CreateInvoiceResponse = {
   invoice_id: string
   invoice_number: string
   subtotal: number
+  cgstAmount: number
+  sgstAmount: number
+  igstAmount: number
+  grandTotal: number
+  items: Array<{
+    id: string
+    invoice_id: string
+    product_id: string
+    quantity: number
+    rate: string
+    line_total: string
+    created_at: string
+    updated_at: string
+    product_name: string
+    hsn_code: string
+    unit: string
+    gst_percent: string
+    gst_amount: string
+  }>
+}
+
+export type UpdateInvoiceResponse = {
+  invoice_id: string
+  invoice_number: string
+  invoice_type: InvoiceType
+  status: string
+  invoice_date: string
+  subtotal: string | number
   cgstAmount: number
   sgstAmount: number
   igstAmount: number

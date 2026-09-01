@@ -7,7 +7,6 @@ import CreateClientPage from './pages/CreateClientPage'
 import CreateInvoicePage from './pages/CreateInvoicePage'
 import CreateProductsPage from './pages/CreateProductsPage'
 import EditCompanyPage from './pages/EditCompanyPage'
-import EditInvoicePage from './pages/EditInvoicePage'
 import InvoiceDetailsPage from './pages/InvoiceDetailsPage'
 import InvoicesPage from './pages/InvoicesPage'
 import LoginPage from './pages/LoginPage'
@@ -27,7 +26,7 @@ function App() {
           <Route path="/invoices" element={<InvoicesPage />} />
           <Route path="/invoices/create" element={<CreateInvoicePage />} />
           <Route path="/invoices/:id" element={<InvoiceDetailsPage />} />
-          <Route path="/invoices/:id/edit" element={<EditInvoicePage />} />
+          <Route path="/invoices/:id/edit" element={<InvoiceDetailsPage />} />
           <Route path="/clients" element={<ClientsPage />} />
           <Route path="/clients/create" element={<CreateClientPage />} />
           <Route path="/clients/:id" element={<ClientPage />} />

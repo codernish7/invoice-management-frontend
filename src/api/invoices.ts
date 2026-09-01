@@ -4,6 +4,8 @@ import type {
   CreateInvoiceResponse,
   InvoiceDetails,
   InvoiceSummary,
+  UpdateInvoiceInput,
+  UpdateInvoiceResponse,
 } from '../types/invoice'
 import apiClient from './apiClient'
 
@@ -27,6 +29,17 @@ export async function createInvoice(
 export async function getInvoice(invoiceId: string): Promise<InvoiceDetails> {
   const response = await apiClient.get<ApiSuccess<InvoiceDetails>>(
     `/company/invoice/${invoiceId}`,
+  )
+  return response.data.data
+}
+
+export async function updateInvoice(
+  invoiceId: string,
+  payload: UpdateInvoiceInput,
+): Promise<UpdateInvoiceResponse> {
+  const response = await apiClient.patch<ApiSuccess<UpdateInvoiceResponse>>(
+    `/company/invoice/${invoiceId}`,
+    payload,
   )
   return response.data.data
 }

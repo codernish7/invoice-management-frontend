@@ -165,6 +165,7 @@ export default function InvoicesPage() {
             </TableHead>
             <TableBody>
               {invoices.map((invoice) => {
+                const canEdit = invoice.status === 'DRAFT'
                 const canDownload = invoice.status === 'COMPLETE'
                 return (
                   <TableRow key={invoice.id} hover>
@@ -194,6 +195,7 @@ export default function InvoicesPage() {
                         entityId={invoice.id}
                         getPaths={getInvoiceActionPaths}
                         ariaLabel={`Actions for ${invoice.invoice_number}`}
+                        editDisabled={!canEdit}
                         onDownload={() => {
                           void handleDownload(invoice.id, invoice.invoice_number)
                         }}

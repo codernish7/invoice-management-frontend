@@ -41,6 +41,16 @@ const invoicesSlice = createSlice({
       state.error = null
       state.hasFetched = true
     },
+    invoiceUpdated(state, action: PayloadAction<InvoiceSummary>) {
+      const index = state.invoices.findIndex(
+        (invoice) => invoice.id === action.payload.id,
+      )
+      if (index !== -1) {
+        state.invoices[index] = action.payload
+      }
+      state.status = 'succeeded'
+      state.error = null
+    },
     clearInvoices(state) {
       state.invoices = []
       state.status = 'idle'
@@ -55,6 +65,7 @@ export const {
   invoicesFetchSucceeded,
   invoicesFetchFailed,
   invoiceCreated,
+  invoiceUpdated,
   clearInvoices,
 } = invoicesSlice.actions
 

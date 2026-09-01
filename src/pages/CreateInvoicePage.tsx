@@ -46,8 +46,8 @@ import {
 } from '../store/store'
 import type {
   CreateInvoiceInput,
-  InvoiceStatus,
   InvoiceSummary,
+  InvoiceWritableStatus,
 } from '../types/invoice'
 import { formatMoney } from '../utils/format'
 
@@ -218,7 +218,7 @@ export default function CreateInvoicePage() {
   }
 
   const buildPayload = (
-    status: InvoiceStatus,
+    status: InvoiceWritableStatus,
   ): { payload: CreateInvoiceInput } | { error: string } => {
     if (clientId.trim() === '') {
       return { error: 'Select a client.' }
@@ -279,7 +279,7 @@ export default function CreateInvoicePage() {
     }
   }
 
-  const submitInvoice = async (status: InvoiceStatus) => {
+  const submitInvoice = async (status: InvoiceWritableStatus) => {
     setErrorMessage(null)
 
     const result = buildPayload(status)
@@ -406,6 +406,9 @@ export default function CreateInvoicePage() {
               <TableHead>
                 <TableRow>
                   <TableCell>Product</TableCell>
+                  <TableCell>HSN</TableCell>
+                  <TableCell>Unit</TableCell>
+                  <TableCell align="right">GST %</TableCell>
                   <TableCell width={120}>Quantity</TableCell>
                   <TableCell width={140}>Rate</TableCell>
                   <TableCell width={140} align="right">
@@ -423,6 +426,19 @@ export default function CreateInvoicePage() {
                   const lineTotal =
                     quantity !== null && rate !== null ? quantity * rate : null
                   const availableProducts = getAvailableProductsForRow(item)
+                  const selectedProduct = products.find(
+                    (product) => product.id === item.product_id,
+                  )
+                  const gstPercent =
+                    selectedProduct === undefined
+                      ? null
+                      : Number(selectedProduct.gst_percent)
+                  const gstAmount =
+                    lineTotal !== null &&
+                    gstPercent !== null &&
+                    !Number.isNaN(gstPercent)
+                      ? (lineTotal * gstPercent) / 100
+                      : null
 
                   return (
                     <TableRow key={item.keyId}>
@@ -438,11 +454,20 @@ export default function CreateInvoicePage() {
                           >
                             {availableProducts.map((product) => (
                               <MenuItem key={product.id} value={product.id}>
-                                {product.product_name} ({product.gst_percent}% GST)
+                                {product.product_name}
                               </MenuItem>
                             ))}
                           </Select>
                         </FormControl>
+                      </TableCell>
+                      <TableCell>
+                        {selectedProduct?.hsn_code ?? '—'}
+                      </TableCell>
+                      <TableCell>{selectedProduct?.unit ?? '—'}</TableCell>
+                      <TableCell align="right">
+                        {selectedProduct === undefined
+                          ? '—'
+                          : `${selectedProduct.gst_percent}%`}
                       </TableCell>
                       <TableCell>
                         <TextField
@@ -467,7 +492,16 @@ export default function CreateInvoicePage() {
                         />
                       </TableCell>
                       <TableCell align="right">
-                        {lineTotal === null ? '—' : formatMoney(lineTotal)}
+                        <Stack spacing={0.25} sx={{ alignItems: 'flex-end' }}>
+                          <Typography variant="body2">
+                            {lineTotal === null ? '—' : formatMoney(lineTotal)}
+                          </Typography>
+                          {gstAmount !== null && (
+                            <Typography variant="caption" color="text.secondary">
+                              GST {formatMoney(gstAmount)}
+                            </Typography>
+                          )}
+                        </Stack>
                       </TableCell>
                       <TableCell align="right">
                         <IconButton
