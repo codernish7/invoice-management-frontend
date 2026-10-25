@@ -1,3 +1,5 @@
+import type { PaginationMeta } from './pagination'
+
 export type Client = {
   id: string
   company_id: string
@@ -24,6 +26,24 @@ export type CreateClientRequest = {
   client_business: string
   onboarding_date: string
   state: string | null
+}
+
+export type GetClientsQuery = {
+  page?: number
+  limit?: number
+  search?: string
+}
+
+export type GetClientsResult = {
+  clients: Client[]
+  pagination: PaginationMeta
+  search: string
+}
+
+export type ClientsListQuery = {
+  page: number
+  limit: number
+  search: string
 }
 
 export type UpdateClientInput = {

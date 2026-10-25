@@ -36,3 +36,6 @@ logs/
 *.njsproj
 *.sln
 *.sw?
+Frontend-Architecture-Walkthrough.pdf
+
+Frontend-Architecture-Walkthrough.md

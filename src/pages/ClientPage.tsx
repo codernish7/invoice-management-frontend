@@ -15,6 +15,7 @@ import { getApiErrorMessage } from '../api/getApiErrorMessage'
 import { clientUpdated } from '../store/clientsSlice'
 import { useAppDispatch } from '../store/hooks'
 import type { Client, UpdateClientInput } from '../types/client'
+import { getClientsListPath } from '../utils/clientsListNavigation'
 
 type ClientFormState = {
   name: string
@@ -85,6 +86,7 @@ export default function ClientPage() {
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
   const isEditMode = /\/edit\/?$/.test(location.pathname)
+  const clientsListPath = getClientsListPath(location.state)
 
   const [form, setForm] = useState<ClientFormState | null>(null)
   const [isLoading, setIsLoading] = useState(id !== undefined)
@@ -151,7 +153,7 @@ export default function ClientPage() {
     }
 
   const handleCancel = () => {
-    navigate(`/clients`)
+    navigate(clientsListPath)
   }
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -178,7 +180,7 @@ export default function ClientPage() {
     try {
       const updatedClient = await updateClient(id, payload)
       dispatch(clientUpdated(updatedClient))
-      navigate(`/clients/${id}`, { replace: true })
+      navigate(`/clients/${id}`, { replace: true, state: location.state })
     } catch (error) {
       setSubmitError(getApiErrorMessage(error))
     } finally {
@@ -199,7 +201,7 @@ export default function ClientPage() {
       <Stack spacing={2}>
         <Alert severity="error">{loadError ?? 'Client not found.'}</Alert>
         <Box>
-          <Button component={RouterLink} to="/clients" variant="outlined">
+          <Button component={RouterLink} to={clientsListPath} variant="outlined">
             Back to Clients
           </Button>
         </Box>
@@ -234,10 +236,15 @@ export default function ClientPage() {
 
         {!isEditMode && (
           <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
-            <Button component={RouterLink} to="/clients" variant="outlined">
+            <Button component={RouterLink} to={clientsListPath} variant="outlined">
               Back
             </Button>
-            <Button component={RouterLink} to={`/clients/${id}/edit`} variant="contained">
+            <Button
+              component={RouterLink}
+              to={`/clients/${id}/edit`}
+              state={location.state}
+              variant="contained"
+            >
               Edit Client
             </Button>
           </Stack>

@@ -114,11 +114,11 @@ export default function CreateInvoicePage() {
       }
       dispatch(clientsFetchStarted())
       try {
-        const data = await getClients()
+        const result = await getClients()
         if (cancelled) {
           return
         }
-        dispatch(clientsFetchSucceeded(data))
+        dispatch(clientsFetchSucceeded(result))
       } catch (err) {
         if (cancelled) {
           return

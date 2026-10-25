@@ -24,6 +24,8 @@ export const selectClients = (state: RootState) => state.clients.clients
 export const selectClientsStatus = (state: RootState) => state.clients.status
 export const selectClientsError = (state: RootState) => state.clients.error
 export const selectClientsHasFetched = (state: RootState) => state.clients.hasFetched
+export const selectClientsPagination = (state: RootState) => state.clients.pagination
+export const selectClientsListQuery = (state: RootState) => state.clients.listQuery
 
 export const selectProducts = (state: RootState) => state.products.products
 export const selectProductsStatus = (state: RootState) => state.products.status

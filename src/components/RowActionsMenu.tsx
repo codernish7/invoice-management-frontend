@@ -17,6 +17,7 @@ type RowActionsMenuProps = {
   onDownload?: () => void
   downloadDisabled?: boolean
   editDisabled?: boolean
+  navigationState?: unknown
 }
 
 export default function RowActionsMenu({
@@ -26,6 +27,7 @@ export default function RowActionsMenu({
   onDownload,
   downloadDisabled = false,
   editDisabled = false,
+  navigationState,
 }: RowActionsMenuProps) {
   const navigate = useNavigate()
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
@@ -42,7 +44,7 @@ export default function RowActionsMenu({
   const handleView = () => {
     const { viewPath } = getPaths(entityId)
     handleClose()
-    navigate(viewPath)
+    navigate(viewPath, navigationState === undefined ? undefined : { state: navigationState })
   }
 
   const handleEdit = () => {
@@ -51,7 +53,7 @@ export default function RowActionsMenu({
     }
     const { editPath } = getPaths(entityId)
     handleClose()
-    navigate(editPath)
+    navigate(editPath, navigationState === undefined ? undefined : { state: navigationState })
   }
 
   const handleDownload = () => {
