@@ -400,7 +400,10 @@ export default function InvoicesPage() {
   )
 
   return (
-    <Stack spacing={3}>
+    <Stack
+      spacing={3}
+      sx={{ flex: 1, minHeight: 0, height: '100%', overflow: 'hidden' }}
+    >
       <Stack
         direction={{ xs: 'column', sm: 'row' }}
         spacing={2}
@@ -497,8 +500,12 @@ export default function InvoicesPage() {
       )}
 
       {showTable && (
-        <TableContainer component={Paper} variant="outlined">
-          <Table aria-label="invoices table">
+        <TableContainer
+          component={Paper}
+          variant="outlined"
+          sx={{ flex: 1, minHeight: 0 }}
+        >
+          <Table stickyHeader aria-label="invoices table">
             <TableHead>
               <TableRow>
                 <TableCell>Invoice Number</TableCell>
@@ -561,6 +568,7 @@ export default function InvoicesPage() {
       {showPagination && (
         <TablePagination
           component="div"
+          sx={{ flexShrink: 0 }}
           count={pagination.totalItems}
           page={Math.max(0, pagination.page - 1)}
           onPageChange={handlePageChange}

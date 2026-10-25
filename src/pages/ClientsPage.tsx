@@ -280,7 +280,10 @@ export default function ClientsPage() {
   }
 
   return (
-    <Stack spacing={3}>
+    <Stack
+      spacing={3}
+      sx={{ flex: 1, minHeight: 0, height: '100%', overflow: 'hidden' }}
+    >
       <Stack
         direction={{ xs: 'column', sm: 'row' }}
         spacing={2}
@@ -335,8 +338,12 @@ export default function ClientsPage() {
       )}
 
       {showTable && (
-        <TableContainer component={Paper} variant="outlined">
-          <Table aria-label="clients table">
+        <TableContainer
+          component={Paper}
+          variant="outlined"
+          sx={{ flex: 1, minHeight: 0 }}
+        >
+          <Table stickyHeader aria-label="clients table">
             <TableHead>
               <TableRow>
                 <TableCell>Name</TableCell>
@@ -379,6 +386,7 @@ export default function ClientsPage() {
       {showPagination && (
         <TablePagination
           component="div"
+          sx={{ flexShrink: 0 }}
           count={pagination.totalItems}
           page={Math.max(0, pagination.page - 1)}
           onPageChange={handlePageChange}

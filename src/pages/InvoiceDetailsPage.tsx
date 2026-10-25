@@ -9,13 +9,9 @@ import CardContent from '@mui/material/CardContent'
 import Chip from '@mui/material/Chip'
 import CircularProgress from '@mui/material/CircularProgress'
 import Divider from '@mui/material/Divider'
-import FormControl from '@mui/material/FormControl'
 import Grid from '@mui/material/Grid'
 import IconButton from '@mui/material/IconButton'
-import InputLabel from '@mui/material/InputLabel'
-import MenuItem from '@mui/material/MenuItem'
 import Paper from '@mui/material/Paper'
-import Select, { type SelectChangeEvent } from '@mui/material/Select'
 import Stack from '@mui/material/Stack'
 import Table from '@mui/material/Table'
 import TableBody from '@mui/material/TableBody'
@@ -26,42 +22,28 @@ import TableRow from '@mui/material/TableRow'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import { Link as RouterLink, useLocation, useNavigate, useParams } from 'react-router-dom'
-import { getClients } from '../api/clients'
 import {
   downloadInvoicePdf,
   getInvoice,
   updateInvoice,
 } from '../api/invoices'
-import { getProducts } from '../api/products'
 import { getApiErrorMessage } from '../api/getApiErrorMessage'
-import {
-  clientsFetchFailed,
-  clientsFetchStarted,
-  clientsFetchSucceeded,
-} from '../store/clientsSlice'
+import ClientLookupAutocomplete from '../components/ClientLookupAutocomplete'
+import ProductLookupAutocomplete from '../components/ProductLookupAutocomplete'
 import { invoiceUpdated } from '../store/invoicesSlice'
 import { getInvoicesListPath } from '../utils/invoicesListNavigation'
-import {
-  productsFetchFailed,
-  productsFetchStarted,
-  productsFetchSucceeded,
-} from '../store/productsSlice'
 import { useAppDispatch, useAppSelector } from '../store/hooks'
-import {
-  selectClients,
-  selectClientsHasFetched,
-  selectClientsStatus,
-  selectInvoices,
-  selectProducts,
-  selectProductsHasFetched,
-  selectProductsStatus,
-} from '../store/store'
+import { selectInvoices } from '../store/store'
+import type { Client } from '../types/client'
 import type {
   InvoiceDetails,
+  InvoiceDetailsClient,
+  InvoiceItem,
   InvoiceSummary,
   InvoiceWritableStatus,
   UpdateInvoiceInput,
 } from '../types/invoice'
+import type { Product } from '../types/product'
 import {
   displayNullable,
   formatInvoiceDate,
@@ -109,6 +91,7 @@ type InvoiceItemFormRow = {
   product_id: string
   quantity: string
   rate: string
+  productSnapshot: Product | null
 }
 
 type EditableInvoiceForm = {
@@ -138,6 +121,56 @@ function createBlankItemRow(): InvoiceItemFormRow {
     product_id: '',
     quantity: '1',
     rate: '',
+    productSnapshot: null,
+  }
+}
+
+function clientFromInvoiceDetails(client: InvoiceDetailsClient): Client {
+  return {
+    id: client.id,
+    company_id: '',
+    name: client.name,
+    email: client.email,
+    phone: client.phone,
+    pan: client.pan,
+    gstin: client.gstin,
+    address: client.address,
+    client_business: client.client_business,
+    state: client.state,
+    onboarding_date: '',
+    created_at: '',
+    updated_at: '',
+  }
+}
+
+function productFromInvoiceItem(item: InvoiceItem): Product {
+  return {
+    id: item.product_id,
+    company_id: '',
+    product_name: item.product_name,
+    hsn_code: item.hsn_code,
+    unit: item.unit,
+    gst_percent: item.gst_percent,
+    created_at: '',
+    updated_at: '',
+  }
+}
+
+function clientToDisplay(client: Client): InvoiceDetailsClient {
+  return {
+    id: client.id,
+    name: client.name,
+    email: client.email,
+    phone: client.phone,
+    gstin: client.gstin,
+    pan: client.pan,
+    address: client.address,
+    state: client.state,
+    client_business: client.client_business,
+    bank_name: null,
+    account_number: null,
+    ifsc_code: null,
+    branch: null,
   }
 }
 
@@ -154,6 +187,7 @@ function createEditableForm(details: InvoiceDetails): EditableInvoiceForm {
             product_id: item.product_id,
             quantity: String(item.quantity),
             rate: String(Number(item.rate)),
+            productSnapshot: productFromInvoiceItem(item),
           })),
   }
 }
@@ -182,23 +216,17 @@ export default function InvoiceDetailsPage() {
   const isEditMode = /\/edit\/?$/.test(location.pathname)
   const invoicesListPath = getInvoicesListPath(location.state)
 
-  const clients = useAppSelector(selectClients)
-  const clientsHasFetched = useAppSelector(selectClientsHasFetched)
-  const clientsStatus = useAppSelector(selectClientsStatus)
-  const products = useAppSelector(selectProducts)
-  const productsHasFetched = useAppSelector(selectProductsHasFetched)
-  const productsStatus = useAppSelector(selectProductsStatus)
   const invoiceSummaries = useAppSelector(selectInvoices)
 
   const [details, setDetails] = useState<InvoiceDetails | null>(null)
   const [editForm, setEditForm] = useState<EditableInvoiceForm | null>(null)
+  const [pickedClient, setPickedClient] = useState<Client | null>(null)
   const [isLoading, setIsLoading] = useState(id !== undefined)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isDownloading, setIsDownloading] = useState(false)
   const [downloadError, setDownloadError] = useState<string | null>(null)
-  const [referenceError, setReferenceError] = useState<string | null>(null)
 
   useEffect(() => {
     if (id === undefined) {
@@ -221,8 +249,10 @@ export default function InvoiceDetailsPage() {
         setDetails(data)
         if (isEditMode && data.invoice.status === 'DRAFT') {
           setEditForm(createEditableForm(data))
+          setPickedClient(clientFromInvoiceDetails(data.client))
         } else {
           setEditForm(null)
+          setPickedClient(null)
         }
       } catch (error) {
         if (cancelled) {
@@ -230,6 +260,7 @@ export default function InvoiceDetailsPage() {
         }
         setDetails(null)
         setEditForm(null)
+        setPickedClient(null)
         setErrorMessage(getApiErrorMessage(error))
       } finally {
         if (!cancelled) {
@@ -245,68 +276,6 @@ export default function InvoiceDetailsPage() {
     }
   }, [id, isEditMode])
 
-  useEffect(() => {
-    if (!isEditMode) {
-      return
-    }
-
-    let cancelled = false
-
-    async function ensureClients() {
-      if (clientsHasFetched) {
-        return
-      }
-      dispatch(clientsFetchStarted())
-      try {
-        const result = await getClients()
-        if (cancelled) {
-          return
-        }
-        dispatch(clientsFetchSucceeded(result))
-      } catch (err) {
-        if (cancelled) {
-          return
-        }
-        const message = getApiErrorMessage(err)
-        dispatch(clientsFetchFailed(message))
-        setReferenceError(message)
-      }
-    }
-
-    async function ensureProducts() {
-      if (productsHasFetched) {
-        return
-      }
-      dispatch(productsFetchStarted())
-      try {
-        const result = await getProducts()
-        if (cancelled) {
-          return
-        }
-        dispatch(productsFetchSucceeded(result))
-      } catch (err) {
-        if (cancelled) {
-          return
-        }
-        const message = getApiErrorMessage(err)
-        dispatch(productsFetchFailed(message))
-        setReferenceError(message)
-      }
-    }
-
-    void ensureClients()
-    void ensureProducts()
-
-    return () => {
-      cancelled = true
-    }
-  }, [clientsHasFetched, dispatch, isEditMode, productsHasFetched])
-
-  const isReferenceLoading =
-    isEditMode &&
-    ((!clientsHasFetched && clientsStatus === 'loading') ||
-      (!productsHasFetched && productsStatus === 'loading'))
-
   const selectedProductIds = useMemo(
     () =>
       editForm === null
@@ -319,39 +288,15 @@ export default function InvoiceDetailsPage() {
     return <Alert severity="error">Invoice ID is missing.</Alert>
   }
 
-  const getAvailableProductsForRow = (row: InvoiceItemFormRow) => {
-    const selectedElsewhere = new Set(
-      selectedProductIds.filter((pid) => pid !== row.product_id),
-    )
-    return products.filter(
-      (product) =>
-        !selectedElsewhere.has(product.id) || product.id === row.product_id,
-    )
-  }
-
-  const selectedClient =
-    editForm === null
-      ? null
-      : (clients.find((client) => client.id === editForm.client_id) ?? null)
-
   const displayClient =
-    isEditMode && selectedClient !== null
-      ? {
-          id: selectedClient.id,
-          name: selectedClient.name,
-          email: selectedClient.email,
-          phone: selectedClient.phone,
-          gstin: selectedClient.gstin,
-          pan: selectedClient.pan,
-          address: selectedClient.address,
-          state: selectedClient.state,
-          client_business: selectedClient.client_business,
-          bank_name: null as string | null,
-          account_number: null as string | null,
-          ifsc_code: null as string | null,
-          branch: null as string | null,
-        }
-      : details?.client ?? null
+    isEditMode &&
+    pickedClient !== null &&
+    editForm !== null &&
+    pickedClient.id === editForm.client_id
+      ? pickedClient.id === details?.client.id
+        ? details.client
+        : clientToDisplay(pickedClient)
+      : (details?.client ?? null)
 
   const handleDownload = async () => {
     if (details === null || isDownloading) {
@@ -375,10 +320,8 @@ export default function InvoiceDetailsPage() {
   }
 
   const updateItemField =
-    (keyId: string, field: 'product_id' | 'quantity' | 'rate') =>
-    (
-      event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent,
-    ) => {
+    (keyId: string, field: 'quantity' | 'rate') =>
+    (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       const value = event.target.value
       setEditForm((current) =>
         current === null
@@ -396,6 +339,37 @@ export default function InvoiceDetailsPage() {
             },
       )
     }
+
+  const handleClientChange = (client: Client | null) => {
+    setPickedClient(client)
+    setEditForm((current) =>
+      current === null
+        ? current
+        : {
+            ...current,
+            client_id: client?.id ?? '',
+          },
+    )
+  }
+
+  const handleProductChange = (keyId: string, product: Product | null) => {
+    setEditForm((current) =>
+      current === null
+        ? current
+        : {
+            ...current,
+            items: current.items.map((item) =>
+              item.keyId === keyId
+                ? {
+                    ...item,
+                    product_id: product?.id ?? '',
+                    productSnapshot: product,
+                  }
+                : item,
+            ),
+          },
+    )
+  }
 
   const handleAddItem = () => {
     setEditForm((current) =>
@@ -499,7 +473,9 @@ export default function InvoiceDetailsPage() {
     }
 
     const clientForSummary =
-      clients.find((client) => client.id === result.payload.client_id) ?? null
+      pickedClient !== null && pickedClient.id === result.payload.client_id
+        ? pickedClient
+        : null
     const existingSummary = invoiceSummaries.find(
       (invoice) => invoice.id === details.invoice.id,
     )
@@ -557,7 +533,7 @@ export default function InvoiceDetailsPage() {
     navigate(`/invoices/${details.invoice.id}`, { state: location.state })
   }
 
-  if (isLoading || isReferenceLoading) {
+  if (isLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
         <CircularProgress aria-label="Loading invoice details" />
@@ -611,13 +587,17 @@ export default function InvoiceDetailsPage() {
   const clientInfo = displayClient ?? details.client
 
   return (
-    <Stack spacing={3}>
+    <Stack
+      spacing={2}
+      sx={{ flex: 1, minHeight: 0, height: '100%', overflow: 'hidden' }}
+    >
       <Stack
         direction={{ xs: 'column', sm: 'row' }}
         spacing={2}
         sx={{
           alignItems: { xs: 'stretch', sm: 'center' },
           justifyContent: 'space-between',
+          flexShrink: 0,
         }}
       >
         <Stack spacing={1}>
@@ -683,42 +663,23 @@ export default function InvoiceDetailsPage() {
         )}
       </Stack>
 
-      {(downloadError !== null ||
-        submitError !== null ||
-        referenceError !== null) && (
-        <Alert severity="error">
-          {submitError ?? downloadError ?? referenceError}
+      {(downloadError !== null || submitError !== null) && (
+        <Alert severity="error" sx={{ flexShrink: 0 }}>
+          {submitError ?? downloadError}
         </Alert>
       )}
 
+      <Box sx={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
+      <Stack spacing={3}>
       <SectionCard title="Client Information">
         {isEditMode && editForm !== null ? (
           <Stack spacing={2}>
-            <FormControl fullWidth required>
-              <InputLabel id="edit-invoice-client-label">Client</InputLabel>
-              <Select
-                labelId="edit-invoice-client-label"
-                label="Client"
-                value={editForm.client_id}
-                onChange={(event) =>
-                  setEditForm((current) =>
-                    current === null
-                      ? current
-                      : {
-                          ...current,
-                          client_id: event.target.value,
-                        },
-                  )
-                }
-                disabled={isSubmitting}
-              >
-                {clients.map((client) => (
-                  <MenuItem key={client.id} value={client.id}>
-                    {client.name} — {client.client_business}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+            <ClientLookupAutocomplete
+              value={pickedClient}
+              onChange={handleClientChange}
+              disabled={isSubmitting}
+              required
+            />
             <Grid container spacing={2}>
               <Grid size={{ xs: 12, sm: 6 }}>
                 <DetailField label="Client Name" value={clientInfo.name} />
@@ -972,12 +933,13 @@ export default function InvoiceDetailsPage() {
                     const rate = toNumber(item.rate)
                     const lineTotal =
                       quantity !== null && rate !== null ? quantity * rate : null
-                    const availableProducts = getAvailableProductsForRow(item)
-                    const selectedProduct = products.find(
-                      (product) => product.id === item.product_id,
-                    )
+                    const selectedProduct =
+                      item.productSnapshot !== null &&
+                      item.productSnapshot.id === item.product_id
+                        ? item.productSnapshot
+                        : null
                     const gstPercent =
-                      selectedProduct === undefined
+                      selectedProduct === null
                         ? null
                         : Number(selectedProduct.gst_percent)
                     const gstAmount =
@@ -990,29 +952,21 @@ export default function InvoiceDetailsPage() {
                     return (
                       <TableRow key={item.keyId}>
                         <TableCell>
-                          <FormControl fullWidth size="small">
-                            <InputLabel id={`edit-product-${item.keyId}`}>
-                              Product
-                            </InputLabel>
-                            <Select
-                              labelId={`edit-product-${item.keyId}`}
-                              label="Product"
-                              value={item.product_id}
-                              onChange={updateItemField(item.keyId, 'product_id')}
-                              disabled={isSubmitting}
-                            >
-                              {availableProducts.map((product) => (
-                                <MenuItem key={product.id} value={product.id}>
-                                  {product.product_name}
-                                </MenuItem>
-                              ))}
-                            </Select>
-                          </FormControl>
+                          <ProductLookupAutocomplete
+                            value={selectedProduct}
+                            onChange={(product) => {
+                              handleProductChange(item.keyId, product)
+                            }}
+                            excludedIds={selectedProductIds.filter(
+                              (pid) => pid !== item.product_id,
+                            )}
+                            disabled={isSubmitting}
+                          />
                         </TableCell>
                         <TableCell>{selectedProduct?.hsn_code ?? '—'}</TableCell>
                         <TableCell>{selectedProduct?.unit ?? '—'}</TableCell>
                         <TableCell align="right">
-                          {selectedProduct === undefined
+                          {selectedProduct === null
                             ? '—'
                             : `${selectedProduct.gst_percent}%`}
                         </TableCell>
@@ -1114,6 +1068,8 @@ export default function InvoiceDetailsPage() {
           </TableContainer>
         )}
       </Paper>
+      </Stack>
+      </Box>
     </Stack>
   )
 }

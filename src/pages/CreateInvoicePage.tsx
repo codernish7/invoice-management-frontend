@@ -1,15 +1,10 @@
-import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from 'react'
+import { useMemo, useState, type ChangeEvent, type FormEvent } from 'react'
 import DeleteIcon from '@mui/icons-material/Delete'
 import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
-import CircularProgress from '@mui/material/CircularProgress'
-import FormControl from '@mui/material/FormControl'
 import IconButton from '@mui/material/IconButton'
-import InputLabel from '@mui/material/InputLabel'
-import MenuItem from '@mui/material/MenuItem'
 import Paper from '@mui/material/Paper'
-import Select, { type SelectChangeEvent } from '@mui/material/Select'
 import Stack from '@mui/material/Stack'
 import Table from '@mui/material/Table'
 import TableBody from '@mui/material/TableBody'
@@ -20,35 +15,19 @@ import TableRow from '@mui/material/TableRow'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import { useNavigate } from 'react-router-dom'
-import { getClients } from '../api/clients'
 import { createInvoice } from '../api/invoices'
-import { getProducts } from '../api/products'
 import { getApiErrorMessage } from '../api/getApiErrorMessage'
-import {
-  clientsFetchFailed,
-  clientsFetchStarted,
-  clientsFetchSucceeded,
-} from '../store/clientsSlice'
+import ClientLookupAutocomplete from '../components/ClientLookupAutocomplete'
+import ProductLookupAutocomplete from '../components/ProductLookupAutocomplete'
 import { invoiceCreated } from '../store/invoicesSlice'
-import {
-  productsFetchFailed,
-  productsFetchStarted,
-  productsFetchSucceeded,
-} from '../store/productsSlice'
-import { useAppDispatch, useAppSelector } from '../store/hooks'
-import {
-  selectClients,
-  selectClientsHasFetched,
-  selectClientsStatus,
-  selectProducts,
-  selectProductsHasFetched,
-  selectProductsStatus,
-} from '../store/store'
+import { useAppDispatch } from '../store/hooks'
+import type { Client } from '../types/client'
 import type {
   CreateInvoiceInput,
   InvoiceSummary,
   InvoiceWritableStatus,
 } from '../types/invoice'
+import type { Product } from '../types/product'
 import { formatMoney } from '../utils/format'
 
 type InvoiceItemFormRow = {
@@ -56,6 +35,7 @@ type InvoiceItemFormRow = {
   product_id: string
   quantity: string
   rate: string
+  productSnapshot: Product | null
 }
 
 function createBlankItemRow(): InvoiceItemFormRow {
@@ -64,6 +44,7 @@ function createBlankItemRow(): InvoiceItemFormRow {
     product_id: '',
     quantity: '1',
     rate: '',
+    productSnapshot: null,
   }
 }
 
@@ -91,72 +72,11 @@ export default function CreateInvoicePage() {
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
 
-  const clients = useAppSelector(selectClients)
-  const clientsHasFetched = useAppSelector(selectClientsHasFetched)
-  const clientsStatus = useAppSelector(selectClientsStatus)
-  const products = useAppSelector(selectProducts)
-  const productsHasFetched = useAppSelector(selectProductsHasFetched)
-  const productsStatus = useAppSelector(selectProductsStatus)
-
-  const [clientId, setClientId] = useState('')
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null)
   const [invoiceDate, setInvoiceDate] = useState(todayInputValue())
   const [items, setItems] = useState<InvoiceItemFormRow[]>([createBlankItemRow()])
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [referenceError, setReferenceError] = useState<string | null>(null)
-
-  useEffect(() => {
-    let cancelled = false
-
-    async function ensureClients() {
-      if (clientsHasFetched) {
-        return
-      }
-      dispatch(clientsFetchStarted())
-      try {
-        const result = await getClients()
-        if (cancelled) {
-          return
-        }
-        dispatch(clientsFetchSucceeded(result))
-      } catch (err) {
-        if (cancelled) {
-          return
-        }
-        const message = getApiErrorMessage(err)
-        dispatch(clientsFetchFailed(message))
-        setReferenceError(message)
-      }
-    }
-
-    async function ensureProducts() {
-      if (productsHasFetched) {
-        return
-      }
-      dispatch(productsFetchStarted())
-      try {
-        const result = await getProducts()
-        if (cancelled) {
-          return
-        }
-        dispatch(productsFetchSucceeded(result))
-      } catch (err) {
-        if (cancelled) {
-          return
-        }
-        const message = getApiErrorMessage(err)
-        dispatch(productsFetchFailed(message))
-        setReferenceError(message)
-      }
-    }
-
-    void ensureClients()
-    void ensureProducts()
-
-    return () => {
-      cancelled = true
-    }
-  }, [clientsHasFetched, dispatch, productsHasFetched])
 
   const selectedProductIds = useMemo(
     () => items.map((item) => item.product_id).filter((id) => id !== ''),
@@ -174,23 +94,9 @@ export default function CreateInvoicePage() {
     }, 0)
   }, [items])
 
-  const isReferenceLoading =
-    (!clientsHasFetched && clientsStatus === 'loading') ||
-    (!productsHasFetched && productsStatus === 'loading')
-
-  const getAvailableProductsForRow = (row: InvoiceItemFormRow) => {
-    const selectedElsewhere = new Set(
-      selectedProductIds.filter((id) => id !== row.product_id),
-    )
-    return products.filter(
-      (product) =>
-        !selectedElsewhere.has(product.id) || product.id === row.product_id,
-    )
-  }
-
   const updateItemField =
-    (keyId: string, field: 'product_id' | 'quantity' | 'rate') =>
-    (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent) => {
+    (keyId: string, field: 'quantity' | 'rate') =>
+    (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       const value = event.target.value
       setItems((current) =>
         current.map((item) =>
@@ -203,6 +109,20 @@ export default function CreateInvoicePage() {
         ),
       )
     }
+
+  const handleProductChange = (keyId: string, product: Product | null) => {
+    setItems((current) =>
+      current.map((item) =>
+        item.keyId === keyId
+          ? {
+              ...item,
+              product_id: product?.id ?? '',
+              productSnapshot: product,
+            }
+          : item,
+      ),
+    )
+  }
 
   const handleAddItem = () => {
     setItems((current) => [...current, createBlankItemRow()])
@@ -220,7 +140,7 @@ export default function CreateInvoicePage() {
   const buildPayload = (
     status: InvoiceWritableStatus,
   ): { payload: CreateInvoiceInput } | { error: string } => {
-    if (clientId.trim() === '') {
+    if (selectedClient === null) {
       return { error: 'Select a client.' }
     }
     if (invoiceDate.trim() === '') {
@@ -270,7 +190,7 @@ export default function CreateInvoicePage() {
 
     return {
       payload: {
-        client_id: clientId,
+        client_id: selectedClient.id,
         invoice_type: 'SALE',
         invoice_date: invoiceDate,
         status,
@@ -288,9 +208,8 @@ export default function CreateInvoicePage() {
       return
     }
 
-    const selectedClient = clients.find((client) => client.id === clientId)
-    if (selectedClient === undefined) {
-      setErrorMessage('Selected client was not found.')
+    if (selectedClient === null) {
+      setErrorMessage('Select a client.')
       return
     }
 
@@ -336,46 +255,30 @@ export default function CreateInvoicePage() {
     navigate('/invoices')
   }
 
-  if (isReferenceLoading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
-        <CircularProgress aria-label="Loading invoice form data" />
-      </Box>
-    )
-  }
-
   return (
-    <Stack spacing={3} component="form">
+    <Stack
+      spacing={2}
+      component="form"
+      sx={{ flex: 1, minHeight: 0, height: '100%', overflow: 'hidden' }}
+    >
       <Typography variant="h4" component="h1">
         Create Invoice
       </Typography>
 
-      {(errorMessage !== null || referenceError !== null) && (
-        <Alert severity="error">{errorMessage ?? referenceError}</Alert>
-      )}
+      {errorMessage !== null && <Alert severity="error">{errorMessage}</Alert>}
 
-      <Paper variant="outlined" sx={{ p: 2 }}>
+      <Paper variant="outlined" sx={{ p: 2, flexShrink: 0 }}>
         <Stack spacing={2}>
           <Typography variant="h6" component="h2">
             Invoice details
           </Typography>
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-            <FormControl fullWidth required>
-              <InputLabel id="invoice-client-label">Client</InputLabel>
-              <Select
-                labelId="invoice-client-label"
-                label="Client"
-                value={clientId}
-                onChange={(event) => setClientId(event.target.value)}
-                disabled={isSubmitting}
-              >
-                {clients.map((client) => (
-                  <MenuItem key={client.id} value={client.id}>
-                    {client.name} — {client.client_business}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+            <ClientLookupAutocomplete
+              value={selectedClient}
+              onChange={setSelectedClient}
+              disabled={isSubmitting}
+              required
+            />
             <TextField
               label="Invoice date"
               type="date"
@@ -396,13 +299,23 @@ export default function CreateInvoicePage() {
         </Stack>
       </Paper>
 
-      <Paper variant="outlined" sx={{ p: 2 }}>
-        <Stack spacing={2}>
+      <Paper
+        variant="outlined"
+        sx={{
+          p: 2,
+          flex: 1,
+          minHeight: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+        }}
+      >
+        <Stack spacing={2} sx={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
           <Typography variant="h6" component="h2">
             Items
           </Typography>
-          <TableContainer>
-            <Table aria-label="invoice items form">
+          <TableContainer sx={{ flex: 1, minHeight: 0 }}>
+            <Table stickyHeader aria-label="invoice items form">
               <TableHead>
                 <TableRow>
                   <TableCell>Product</TableCell>
@@ -425,12 +338,13 @@ export default function CreateInvoicePage() {
                   const rate = toNumber(item.rate)
                   const lineTotal =
                     quantity !== null && rate !== null ? quantity * rate : null
-                  const availableProducts = getAvailableProductsForRow(item)
-                  const selectedProduct = products.find(
-                    (product) => product.id === item.product_id,
-                  )
+                  const selectedProduct =
+                    item.productSnapshot !== null &&
+                    item.productSnapshot.id === item.product_id
+                      ? item.productSnapshot
+                      : null
                   const gstPercent =
-                    selectedProduct === undefined
+                    selectedProduct === null
                       ? null
                       : Number(selectedProduct.gst_percent)
                   const gstAmount =
@@ -442,30 +356,24 @@ export default function CreateInvoicePage() {
 
                   return (
                     <TableRow key={item.keyId}>
-                      <TableCell>
-                        <FormControl fullWidth size="small">
-                          <InputLabel id={`product-${item.keyId}`}>Product</InputLabel>
-                          <Select
-                            labelId={`product-${item.keyId}`}
-                            label="Product"
-                            value={item.product_id}
-                            onChange={updateItemField(item.keyId, 'product_id')}
-                            disabled={isSubmitting}
-                          >
-                            {availableProducts.map((product) => (
-                              <MenuItem key={product.id} value={product.id}>
-                                {product.product_name}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        </FormControl>
+                      <TableCell sx={{ minWidth: 240 }}>
+                        <ProductLookupAutocomplete
+                          value={selectedProduct}
+                          onChange={(product) => {
+                            handleProductChange(item.keyId, product)
+                          }}
+                          excludedIds={selectedProductIds.filter(
+                            (id) => id !== item.product_id,
+                          )}
+                          disabled={isSubmitting}
+                        />
                       </TableCell>
                       <TableCell>
                         {selectedProduct?.hsn_code ?? '—'}
                       </TableCell>
                       <TableCell>{selectedProduct?.unit ?? '—'}</TableCell>
                       <TableCell align="right">
-                        {selectedProduct === undefined
+                        {selectedProduct === null
                           ? '—'
                           : `${selectedProduct.gst_percent}%`}
                       </TableCell>
@@ -546,6 +454,7 @@ export default function CreateInvoicePage() {
           gap: 2,
           justifyContent: 'flex-end',
           flexWrap: 'wrap',
+          flexShrink: 0,
         }}
       >
         <Button

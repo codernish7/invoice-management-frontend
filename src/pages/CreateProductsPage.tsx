@@ -166,15 +166,24 @@ export default function CreateProductsPage() {
   }
 
   return (
-    <Stack spacing={3} component="form" onSubmit={handleSubmit}>
+    <Stack
+      spacing={2}
+      component="form"
+      onSubmit={handleSubmit}
+      sx={{ flex: 1, minHeight: 0, height: '100%', overflow: 'hidden' }}
+    >
       <Typography variant="h4" component="h1">
         Create Products
       </Typography>
 
       {errorMessage !== null && <Alert severity="error">{errorMessage}</Alert>}
 
-      <TableContainer component={Paper} variant="outlined">
-        <Table aria-label="create products form">
+      <TableContainer
+        component={Paper}
+        variant="outlined"
+        sx={{ flex: 1, minHeight: 0 }}
+      >
+        <Table stickyHeader aria-label="create products form">
           <TableHead>
             <TableRow>
               <TableCell>Product Name</TableCell>
@@ -247,7 +256,7 @@ export default function CreateProductsPage() {
         </Table>
       </TableContainer>
 
-      <Box>
+      <Box sx={{ flexShrink: 0 }}>
         <Button
           type="button"
           variant="outlined"
@@ -264,6 +273,7 @@ export default function CreateProductsPage() {
           gap: 2,
           justifyContent: 'flex-end',
           flexWrap: 'wrap',
+          flexShrink: 0,
         }}
       >
         <Button

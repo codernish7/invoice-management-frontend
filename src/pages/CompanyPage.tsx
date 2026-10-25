@@ -1,3 +1,4 @@
+import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
@@ -60,13 +61,17 @@ export default function CompanyPage() {
   }
 
   return (
-    <Stack spacing={3}>
+    <Stack
+      spacing={2}
+      sx={{ flex: 1, minHeight: 0, height: '100%', overflow: 'hidden' }}
+    >
       <Stack
         direction={{ xs: 'column', sm: 'row' }}
         spacing={2}
         sx={{
           alignItems: { xs: 'stretch', sm: 'center' },
           justifyContent: 'space-between',
+          flexShrink: 0,
         }}
       >
         <Typography variant="h4" component="h1">
@@ -77,6 +82,8 @@ export default function CompanyPage() {
         </Button>
       </Stack>
 
+      <Box sx={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
+      <Stack spacing={3}>
       <SectionCard title="Company Information">
         <Grid container spacing={2}>
           <Grid size={{ xs: 12, sm: 6 }}>
@@ -133,6 +140,8 @@ export default function CompanyPage() {
           </Grid>
         </Grid>
       </SectionCard>
+      </Stack>
+      </Box>
     </Stack>
   )
 }

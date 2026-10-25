@@ -4,19 +4,23 @@ import Avatar from '@mui/material/Avatar'
 import IconButton from '@mui/material/IconButton'
 import Menu from '@mui/material/Menu'
 import MenuItem from '@mui/material/MenuItem'
+import Stack from '@mui/material/Stack'
 import Toolbar from '@mui/material/Toolbar'
 import Typography from '@mui/material/Typography'
 import { Link as RouterLink, useNavigate } from 'react-router-dom'
 import { logoutCompany } from '../api/auth'
-import { useAppDispatch } from '../store/hooks'
+import { useAppDispatch, useAppSelector } from '../store/hooks'
 import { removeCompany } from '../store/companySlice'
 import { clearClients } from '../store/clientsSlice'
 import { clearProducts } from '../store/productsSlice'
 import { clearInvoices } from '../store/invoicesSlice'
+import { selectCompany } from '../store/store'
 
 export default function Navbar() {
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
+  const company = useAppSelector(selectCompany)
+  const ownerName = company?.owner.trim() ?? ''
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const menuOpen = Boolean(anchorEl)
 
@@ -51,16 +55,23 @@ export default function Navbar() {
         <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
           Invoice Manager
         </Typography>
-        <IconButton
-          onClick={handleOpenMenu}
-          size="small"
-          aria-label="account menu"
-          aria-controls={menuOpen ? 'account-menu' : undefined}
-          aria-haspopup="true"
-          aria-expanded={menuOpen ? 'true' : undefined}
-        >
-          <Avatar sx={{ width: 32, height: 32 }} />
-        </IconButton>
+        <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+          {ownerName !== '' && (
+            <Typography variant="body2" sx={{ lineHeight: 1.2 }}>
+              {ownerName}
+            </Typography>
+          )}
+          <IconButton
+            onClick={handleOpenMenu}
+            size="small"
+            aria-label="account menu"
+            aria-controls={menuOpen ? 'account-menu' : undefined}
+            aria-haspopup="true"
+            aria-expanded={menuOpen ? 'true' : undefined}
+          >
+            <Avatar sx={{ width: 32, height: 32 }} />
+          </IconButton>
+        </Stack>
         <Menu
           id="account-menu"
           anchorEl={anchorEl}

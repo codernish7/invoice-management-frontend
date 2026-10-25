@@ -131,13 +131,24 @@ export default function EditCompanyPage() {
   }
 
   return (
-    <Stack spacing={3} component="form" onSubmit={handleSubmit}>
-      <Typography variant="h4" component="h1">
+    <Stack
+      spacing={2}
+      component="form"
+      onSubmit={handleSubmit}
+      sx={{ flex: 1, minHeight: 0, height: '100%', overflow: 'hidden' }}
+    >
+      <Typography variant="h4" component="h1" sx={{ flexShrink: 0 }}>
         Edit Company
       </Typography>
 
-      {errorMessage !== null && <Alert severity="error">{errorMessage}</Alert>}
+      {errorMessage !== null && (
+        <Alert severity="error" sx={{ flexShrink: 0 }}>
+          {errorMessage}
+        </Alert>
+      )}
 
+      <Box sx={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
+      <Stack spacing={3}>
       <Card variant="outlined">
         <CardContent>
           <Typography variant="h6" component="h2" gutterBottom>
@@ -285,6 +296,8 @@ export default function EditCompanyPage() {
           </Grid>
         </CardContent>
       </Card>
+      </Stack>
+      </Box>
 
       <Box
         sx={{
@@ -292,6 +305,7 @@ export default function EditCompanyPage() {
           gap: 2,
           justifyContent: 'flex-end',
           flexWrap: 'wrap',
+          flexShrink: 0,
         }}
       >
         <Button
