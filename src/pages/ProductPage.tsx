@@ -15,6 +15,7 @@ import { getApiErrorMessage } from '../api/getApiErrorMessage'
 import { productUpdated } from '../store/productsSlice'
 import { useAppDispatch } from '../store/hooks'
 import type { Product, UpdateProductInput } from '../types/product'
+import { getProductsListPath } from '../utils/productsListNavigation'
 
 type ProductFormState = {
   product_name: string
@@ -73,6 +74,7 @@ export default function ProductPage() {
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
   const isEditMode = /\/edit\/?$/.test(location.pathname)
+  const productsListPath = getProductsListPath(location.state)
 
   const [form, setForm] = useState<ProductFormState | null>(null)
   const [isLoading, setIsLoading] = useState(id !== undefined)
@@ -139,7 +141,7 @@ export default function ProductPage() {
     }
 
   const handleCancel = () => {
-    navigate(`/products`)
+    navigate(productsListPath)
   }
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -160,7 +162,7 @@ export default function ProductPage() {
     try {
       const updatedProduct = await updateProduct(id, result.payload)
       dispatch(productUpdated(updatedProduct))
-      navigate(`/products/${id}`, { replace: true })
+      navigate(`/products/${id}`, { replace: true, state: location.state })
     } catch (error) {
       setSubmitError(getApiErrorMessage(error))
     } finally {
@@ -181,7 +183,7 @@ export default function ProductPage() {
       <Stack spacing={2}>
         <Alert severity="error">{loadError ?? 'Product not found.'}</Alert>
         <Box>
-          <Button component={RouterLink} to="/products" variant="outlined">
+          <Button component={RouterLink} to={productsListPath} variant="outlined">
             Back to Products
           </Button>
         </Box>
@@ -216,12 +218,13 @@ export default function ProductPage() {
 
         {!isEditMode && (
           <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
-            <Button component={RouterLink} to="/products" variant="outlined">
+            <Button component={RouterLink} to={productsListPath} variant="outlined">
               Back to Products
             </Button>
             <Button
               component={RouterLink}
               to={`/products/${id}/edit`}
+              state={location.state}
               variant="contained"
             >
               Edit Product

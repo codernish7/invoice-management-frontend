@@ -31,6 +31,8 @@ export const selectProducts = (state: RootState) => state.products.products
 export const selectProductsStatus = (state: RootState) => state.products.status
 export const selectProductsError = (state: RootState) => state.products.error
 export const selectProductsHasFetched = (state: RootState) => state.products.hasFetched
+export const selectProductsPagination = (state: RootState) => state.products.pagination
+export const selectProductsListQuery = (state: RootState) => state.products.listQuery
 
 export const selectInvoices = (state: RootState) => state.invoices.invoices
 export const selectInvoicesStatus = (state: RootState) => state.invoices.status

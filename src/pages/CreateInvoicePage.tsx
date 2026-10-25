@@ -135,11 +135,11 @@ export default function CreateInvoicePage() {
       }
       dispatch(productsFetchStarted())
       try {
-        const data = await getProducts()
+        const result = await getProducts()
         if (cancelled) {
           return
         }
-        dispatch(productsFetchSucceeded(data))
+        dispatch(productsFetchSucceeded(result))
       } catch (err) {
         if (cancelled) {
           return

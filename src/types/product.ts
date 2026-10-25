@@ -1,3 +1,5 @@
+import type { PaginationMeta } from './pagination'
+
 export type Product = {
   id: string
   company_id: string
@@ -14,6 +16,30 @@ export type CreateProductInput = {
   hsn_code: string
   unit: string
   gst_percent: number
+}
+
+export type GetProductsQuery = {
+  page?: number
+  limit?: number
+  search?: string
+  gst_percent?: string
+  unit?: string
+}
+
+export type GetProductsResult = {
+  products: Product[]
+  pagination: PaginationMeta
+  search: string
+  gstPercent: string
+  unit: string
+}
+
+export type ProductsListQuery = {
+  page: number
+  limit: number
+  search: string
+  gstPercent: string
+  unit: string
 }
 
 export type UpdateProductInput = {

@@ -1,32 +1,77 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
-import type { Product } from '../types/product'
+import type { PaginationMeta } from '../types/pagination'
+import { DEFAULT_LIMIT, DEFAULT_PAGE } from '../types/pagination'
+import type { GetProductsResult, Product, ProductsListQuery } from '../types/product'
 
 type ProductsStatus = 'idle' | 'loading' | 'succeeded' | 'failed'
 
+type ProductsFetchSuccessPayload = GetProductsResult & {
+  requestId?: string
+}
+
+const emptyPagination: PaginationMeta = {
+  page: DEFAULT_PAGE,
+  limit: DEFAULT_LIMIT,
+  totalItems: 0,
+  totalPages: 0,
+  hasNextPage: false,
+  hasPreviousPage: false,
+}
+
 type ProductsState = {
   products: Product[]
+  pagination: PaginationMeta
+  listQuery: ProductsListQuery | null
   status: ProductsStatus
   error: string | null
   hasFetched: boolean
+  activeRequestId: string | null
 }
 
 const initialState: ProductsState = {
   products: [],
+  pagination: emptyPagination,
+  listQuery: null,
   status: 'idle',
   error: null,
   hasFetched: false,
+  activeRequestId: null,
 }
 
 const productsSlice = createSlice({
   name: 'products',
   initialState,
   reducers: {
-    productsFetchStarted(state) {
-      state.status = 'loading'
-      state.error = null
+    productsFetchStarted: {
+      reducer(state, action: PayloadAction<string | undefined>) {
+        state.status = 'loading'
+        state.error = null
+        if (action.payload !== undefined) {
+          state.activeRequestId = action.payload
+        }
+      },
+      prepare(requestId?: string) {
+        return { payload: requestId }
+      },
     },
-    productsFetchSucceeded(state, action: PayloadAction<Product[]>) {
-      state.products = action.payload
+    productsFetchSucceeded(state, action: PayloadAction<ProductsFetchSuccessPayload>) {
+      const requestId = action.payload.requestId
+      if (
+        requestId !== undefined &&
+        state.activeRequestId !== null &&
+        requestId !== state.activeRequestId
+      ) {
+        return
+      }
+      state.products = action.payload.products
+      state.pagination = action.payload.pagination
+      state.listQuery = {
+        page: action.payload.pagination.page,
+        limit: action.payload.pagination.limit,
+        search: action.payload.search,
+        gstPercent: action.payload.gstPercent,
+        unit: action.payload.unit,
+      }
       state.status = 'succeeded'
       state.error = null
       state.hasFetched = true
@@ -51,11 +96,8 @@ const productsSlice = createSlice({
       state.status = 'succeeded'
       state.error = null
     },
-    clearProducts(state) {
-      state.products = []
-      state.status = 'idle'
-      state.error = null
-      state.hasFetched = false
+    clearProducts() {
+      return initialState
     },
   },
 })
