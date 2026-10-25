@@ -38,3 +38,5 @@ export const selectInvoices = (state: RootState) => state.invoices.invoices
 export const selectInvoicesStatus = (state: RootState) => state.invoices.status
 export const selectInvoicesError = (state: RootState) => state.invoices.error
 export const selectInvoicesHasFetched = (state: RootState) => state.invoices.hasFetched
+export const selectInvoicesPagination = (state: RootState) => state.invoices.pagination
+export const selectInvoicesListQuery = (state: RootState) => state.invoices.listQuery

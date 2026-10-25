@@ -2,18 +2,62 @@ import type { ApiSuccess } from '../types/company'
 import type {
   CreateInvoiceInput,
   CreateInvoiceResponse,
+  GetInvoicesQuery,
+  GetInvoicesResult,
   InvoiceDetails,
   InvoiceSummary,
   UpdateInvoiceInput,
   UpdateInvoiceResponse,
 } from '../types/invoice'
+import type { PaginatedApiSuccess } from '../types/pagination'
+import { DEFAULT_LIMIT, DEFAULT_PAGE } from '../types/pagination'
 import apiClient from './apiClient'
 
-export async function getInvoices(): Promise<InvoiceSummary[]> {
-  const response = await apiClient.get<ApiSuccess<InvoiceSummary[]>>(
+export async function getInvoices(
+  params: GetInvoicesQuery = {},
+  options?: { signal?: AbortSignal },
+): Promise<GetInvoicesResult> {
+  const page = params.page ?? DEFAULT_PAGE
+  const limit = params.limit ?? DEFAULT_LIMIT
+  const search = params.search?.trim() ?? ''
+  const invoiceType = params.invoice_type?.trim() ?? ''
+  const invoiceStatus = params.status?.trim() ?? ''
+
+  const query: {
+    page: number
+    limit: number
+    search?: string
+    invoice_type?: string
+    status?: string
+  } = {
+    page,
+    limit,
+  }
+  if (search !== '') {
+    query.search = search
+  }
+  if (invoiceType !== '') {
+    query.invoice_type = invoiceType
+  }
+  if (invoiceStatus !== '') {
+    query.status = invoiceStatus
+  }
+
+  const response = await apiClient.get<PaginatedApiSuccess<InvoiceSummary[]>>(
     '/company/invoice/view',
+    {
+      params: query,
+      signal: options?.signal,
+    },
   )
-  return response.data.data
+
+  return {
+    invoices: response.data.data,
+    pagination: response.data.pagination,
+    search,
+    invoiceType,
+    invoiceStatus,
+  }
 }
 
 export async function createInvoice(

@@ -40,6 +40,7 @@ import {
   clientsFetchSucceeded,
 } from '../store/clientsSlice'
 import { invoiceUpdated } from '../store/invoicesSlice'
+import { getInvoicesListPath } from '../utils/invoicesListNavigation'
 import {
   productsFetchFailed,
   productsFetchStarted,
@@ -179,6 +180,7 @@ export default function InvoiceDetailsPage() {
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
   const isEditMode = /\/edit\/?$/.test(location.pathname)
+  const invoicesListPath = getInvoicesListPath(location.state)
 
   const clients = useAppSelector(selectClients)
   const clientsHasFetched = useAppSelector(selectClientsHasFetched)
@@ -536,7 +538,10 @@ export default function InvoiceDetailsPage() {
       }
 
       dispatch(invoiceUpdated(summary))
-      navigate(`/invoices/${details.invoice.id}`, { replace: true })
+      navigate(`/invoices/${details.invoice.id}`, {
+        replace: true,
+        state: location.state,
+      })
     } catch (error) {
       setSubmitError(getApiErrorMessage(error))
     } finally {
@@ -546,10 +551,10 @@ export default function InvoiceDetailsPage() {
 
   const handleCancelEdit = () => {
     if (details === null) {
-      navigate('/invoices')
+      navigate(invoicesListPath)
       return
     }
-    navigate(`/invoices/${details.invoice.id}`)
+    navigate(`/invoices/${details.invoice.id}`, { state: location.state })
   }
 
   if (isLoading || isReferenceLoading) {
@@ -565,7 +570,7 @@ export default function InvoiceDetailsPage() {
       <Stack spacing={2}>
         <Alert severity="error">{errorMessage ?? 'Invoice not found.'}</Alert>
         <Box>
-          <Button component={RouterLink} to="/invoices" variant="outlined">
+          <Button component={RouterLink} to={invoicesListPath} variant="outlined">
             Back to Invoices
           </Button>
         </Box>
@@ -584,11 +589,12 @@ export default function InvoiceDetailsPage() {
           <Button
             component={RouterLink}
             to={`/invoices/${details.invoice.id}`}
+            state={location.state}
             variant="contained"
           >
             View Invoice
           </Button>
-          <Button component={RouterLink} to="/invoices" variant="outlined">
+          <Button component={RouterLink} to={invoicesListPath} variant="outlined">
             Back to Invoices
           </Button>
         </Stack>
@@ -660,15 +666,20 @@ export default function InvoiceDetailsPage() {
             </Button>
           </Stack>
         ) : (
-          <Button
-            variant="contained"
-            onClick={() => {
-              void handleDownload()
-            }}
-            disabled={!canDownload || isDownloading}
-          >
-            {isDownloading ? 'Downloading…' : 'Download'}
-          </Button>
+          <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
+            <Button component={RouterLink} to={invoicesListPath} variant="outlined">
+              Back
+            </Button>
+            <Button
+              variant="contained"
+              onClick={() => {
+                void handleDownload()
+              }}
+              disabled={!canDownload || isDownloading}
+            >
+              {isDownloading ? 'Downloading…' : 'Download'}
+            </Button>
+          </Stack>
         )}
       </Stack>
 

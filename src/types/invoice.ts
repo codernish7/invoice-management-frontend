@@ -1,6 +1,15 @@
+import type { PaginationMeta } from './pagination'
+
 export type InvoiceType = 'SALE'
 export type InvoiceStatus = 'DRAFT' | 'COMPLETE' | 'CANCELLED'
 export type InvoiceWritableStatus = 'DRAFT' | 'COMPLETE'
+
+export const INVOICE_TYPE_FILTER_OPTIONS = ['SALE', 'PURCHASE'] as const
+export const INVOICE_STATUS_FILTER_OPTIONS = [
+  'DRAFT',
+  'COMPLETE',
+  'CANCELLED',
+] as const
 
 export type InvoiceSummary = {
   id: string
@@ -16,6 +25,30 @@ export type InvoiceSummary = {
   client_id: string
   client_name: string
   client_business: string
+}
+
+export type GetInvoicesQuery = {
+  page?: number
+  limit?: number
+  search?: string
+  invoice_type?: string
+  status?: string
+}
+
+export type GetInvoicesResult = {
+  invoices: InvoiceSummary[]
+  pagination: PaginationMeta
+  search: string
+  invoiceType: string
+  invoiceStatus: string
+}
+
+export type InvoicesListQuery = {
+  page: number
+  limit: number
+  search: string
+  invoiceType: string
+  invoiceStatus: string
 }
 
 export type InvoiceItem = {

@@ -1,32 +1,77 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
-import type { InvoiceSummary } from '../types/invoice'
+import type { GetInvoicesResult, InvoiceSummary, InvoicesListQuery } from '../types/invoice'
+import type { PaginationMeta } from '../types/pagination'
+import { DEFAULT_LIMIT, DEFAULT_PAGE } from '../types/pagination'
 
-type InvoicesStatus = 'idle' | 'loading' | 'succeeded' | 'failed'
+type InvoicesFetchStatus = 'idle' | 'loading' | 'succeeded' | 'failed'
+
+type InvoicesFetchSuccessPayload = GetInvoicesResult & {
+  requestId?: string
+}
+
+const emptyPagination: PaginationMeta = {
+  page: DEFAULT_PAGE,
+  limit: DEFAULT_LIMIT,
+  totalItems: 0,
+  totalPages: 0,
+  hasNextPage: false,
+  hasPreviousPage: false,
+}
 
 type InvoicesState = {
   invoices: InvoiceSummary[]
-  status: InvoicesStatus
+  pagination: PaginationMeta
+  listQuery: InvoicesListQuery | null
+  status: InvoicesFetchStatus
   error: string | null
   hasFetched: boolean
+  activeRequestId: string | null
 }
 
 const initialState: InvoicesState = {
   invoices: [],
+  pagination: emptyPagination,
+  listQuery: null,
   status: 'idle',
   error: null,
   hasFetched: false,
+  activeRequestId: null,
 }
 
 const invoicesSlice = createSlice({
   name: 'invoices',
   initialState,
   reducers: {
-    invoicesFetchStarted(state) {
-      state.status = 'loading'
-      state.error = null
+    invoicesFetchStarted: {
+      reducer(state, action: PayloadAction<string | undefined>) {
+        state.status = 'loading'
+        state.error = null
+        if (action.payload !== undefined) {
+          state.activeRequestId = action.payload
+        }
+      },
+      prepare(requestId?: string) {
+        return { payload: requestId }
+      },
     },
-    invoicesFetchSucceeded(state, action: PayloadAction<InvoiceSummary[]>) {
-      state.invoices = action.payload
+    invoicesFetchSucceeded(state, action: PayloadAction<InvoicesFetchSuccessPayload>) {
+      const requestId = action.payload.requestId
+      if (
+        requestId !== undefined &&
+        state.activeRequestId !== null &&
+        requestId !== state.activeRequestId
+      ) {
+        return
+      }
+      state.invoices = action.payload.invoices
+      state.pagination = action.payload.pagination
+      state.listQuery = {
+        page: action.payload.pagination.page,
+        limit: action.payload.pagination.limit,
+        search: action.payload.search,
+        invoiceType: action.payload.invoiceType,
+        invoiceStatus: action.payload.invoiceStatus,
+      }
       state.status = 'succeeded'
       state.error = null
       state.hasFetched = true
@@ -51,11 +96,8 @@ const invoicesSlice = createSlice({
       state.status = 'succeeded'
       state.error = null
     },
-    clearInvoices(state) {
-      state.invoices = []
-      state.status = 'idle'
-      state.error = null
-      state.hasFetched = false
+    clearInvoices() {
+      return initialState
     },
   },
 })
